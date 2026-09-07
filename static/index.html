@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TingPing</title>
+  <link rel="icon" type="image/svg+xml" href="/static/ting-ping-icon.svg">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+  <header class="app-header">
+    <div class="brand">
+      <span class="brand-prompt">root@tingping</span><span class="brand-sep">:</span><span class="brand-path">~</span><span class="brand-caret">#</span>
+      <span class="brand-name">ting-ping</span>
+      <span class="brand-tag">network reachability monitor</span>
+    </div>
+
+    <div class="header-actions">
+      <div id="link-status" class="link-status" title="Live websocket feed pushing check results to this page. If it drops, the page reconnects on its own.">
+        <span class="link-dot"></span><span class="link-text">connecting</span>
+      </div>
+      <button id="btn-refresh-device" class="btn btn-ghost" title="Re-read this machine's network stack right now. The panel already loads by itself when the page opens.">
+        <i class="bi bi-arrow-clockwise"></i> refresh device
+      </button>
+      <button id="btn-add-target" class="btn btn-primary" title="Register a new host to poll on a fixed interval.">
+        <i class="bi bi-plus-lg"></i> add monitor
+      </button>
+    </div>
+  </header>
+
+  <main>
+    <section id="device-panel" class="panel device-panel">
+      <div class="panel-header">
+        <div class="panel-title">
+          <h2><span class="sigil">##</span> device_status</h2>
+          <p class="panel-desc">
+            Read from this machine&rsquo;s own network stack &mdash; <code>ipconfig</code>, the adapter
+            counters and live probes. Loads automatically when the page opens; <code>refresh device</code>
+            re-reads it on demand. The public-identity block is the one part that leaves your network:
+            it asks an external service how your address looks from outside. Set
+            <code>TP_PUBLIC_IP_LOOKUP=0</code> to switch that off.
+          </p>
+        </div>
+        <div class="panel-header-right">
+          <span id="device-stamp" class="stamp" title="Local time this snapshot was taken."></span>
+          <button id="btn-toggle-device" class="icon-btn" aria-label="Collapse device status"
+                  title="Collapse or expand this panel">
+            <i class="bi bi-chevron-up"></i>
+          </button>
+        </div>
+      </div>
+      <div id="device-panel-body" class="panel-body">
+        <p class="muted"><i class="bi bi-hourglass-split"></i> reading interfaces&hellip;</p>
+      </div>
+    </section>
+
+    <section class="panel monitors-panel">
+      <div class="panel-header">
+        <div class="panel-title">
+          <h2><span class="sigil">##</span> monitors</h2>
+          <p class="panel-desc">
+            One polling loop per host. Results are held in memory only &mdash; latency history and uptime
+            reset when the server restarts.
+          </p>
+        </div>
+        <div class="legend" title="What each status glyph means.">
+          <span class="legend-item"><span class="status-dot up"><span class="dot-core"></span></span> up &middot; last check passed</span>
+          <span class="legend-item"><span class="status-dot down"><span class="dot-core"></span></span> down &middot; last check failed</span>
+          <span class="legend-item"><span class="status-dot unknown"><span class="dot-core"></span></span> idle &middot; disabled or no data yet</span>
+        </div>
+      </div>
+
+      <div class="panel-body">
+        <div id="empty-state" class="empty-state">
+          <pre class="ascii">┌─────────────────────────┐
+│   no monitors defined   │
+└─────────────────────────┘</pre>
+          <p>Add a host to start polling it. Ping, TCP, HTTP and DNS checks are supported.</p>
+        </div>
+        <div id="targets-grid" class="targets-grid"></div>
+      </div>
+    </section>
+  </main>
+
+  <div id="target-modal" class="modal-backdrop" hidden>
+    <div class="modal">
+      <div class="modal-header">
+        <h2 id="modal-title"><span class="sigil">$</span> add monitor</h2>
+        <button id="btn-close-modal" class="icon-btn" aria-label="Close" title="Close without saving">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+      <form id="target-form" class="modal-body">
+        <input type="hidden" id="f-id" />
+
+        <label class="field">
+          <span class="field-label">host <span class="req">required</span></span>
+          <span class="field-hint">IP address or domain name to check &mdash; no scheme, no port. e.g. <code>192.168.1.1</code> or <code>example.com</code></span>
+          <input type="text" id="f-host" required placeholder="192.168.1.1 or example.com" autocomplete="off" spellcheck="false" />
+        </label>
+
+        <label class="field">
+          <span class="field-label">name <span class="opt">optional</span></span>
+          <span class="field-hint">Label shown on the card. Leave it blank and the host above is used as the name.</span>
+          <input type="text" id="f-name" placeholder="defaults to the host" autocomplete="off" spellcheck="false" />
+        </label>
+
+        <label class="field">
+          <span class="field-label">method</span>
+          <span class="field-hint">How reachability is tested. Pick the one that matches the service you actually care about.</span>
+          <select id="f-method">
+            <option value="ping">ping &mdash; ICMP echo</option>
+            <option value="tcp">tcp &mdash; socket connect to one port</option>
+            <option value="http">http &mdash; request expecting a response</option>
+            <option value="dns">dns &mdash; name resolution</option>
+          </select>
+          <span id="f-method-desc" class="field-note"></span>
+        </label>
+
+        <div id="f-tcp-fields" class="method-fields" hidden>
+          <label class="field">
+            <span class="field-label">tcp port <span class="req">required</span></span>
+            <span class="field-hint">Port the socket connects to. A refused or timed-out connect counts as down. e.g. 22, 443, 5432</span>
+            <input type="number" id="f-tcp-port" min="1" max="65535" placeholder="443" />
+          </label>
+        </div>
+
+        <div id="f-http-fields" class="method-fields" hidden>
+          <label class="field">
+            <span class="field-label">scheme</span>
+            <span class="field-hint">Protocol used for the request. <code>https</code> also exercises the TLS handshake.</span>
+            <select id="f-http-scheme">
+              <option value="https">https</option>
+              <option value="http">http</option>
+            </select>
+          </label>
+          <label class="field">
+            <span class="field-label">path</span>
+            <span class="field-hint">Path appended to the host. Point it at a cheap health endpoint if you have one; defaults to <code>/</code>.</span>
+            <input type="text" id="f-http-path" placeholder="/" autocomplete="off" spellcheck="false" />
+          </label>
+        </div>
+
+        <div class="field">
+          <span class="field-label">interval &mdash; <span id="f-interval-value">5</span>s</span>
+          <span class="field-hint">Seconds to wait between checks. Lower reacts faster to an outage but generates more traffic.</span>
+          <input type="range" id="f-interval" step="1" />
+          <span class="range-scale"><span id="f-interval-min">1s</span><span id="f-interval-max">60s</span></span>
+        </div>
+
+        <label class="field checkbox-field">
+          <input type="checkbox" id="f-enabled" checked />
+          <span class="checkbox-copy">
+            <span class="field-label">enabled</span>
+            <span class="field-hint">Uncheck to keep the monitor configured but stop its polling loop.</span>
+          </span>
+        </label>
+
+        <div id="form-error" class="form-error" hidden></div>
+
+        <div class="modal-actions">
+          <button type="button" id="btn-delete-target" class="btn btn-danger" hidden
+                  title="Remove this monitor and its history permanently">
+            <i class="bi bi-trash"></i> delete
+          </button>
+          <div class="modal-actions-right">
+            <button type="button" id="btn-cancel-modal" class="btn btn-ghost">cancel</button>
+            <button type="submit" class="btn btn-primary">save</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+  <script src="/static/js/api.js"></script>
+  <script src="/static/js/charts.js"></script>
+  <script src="/static/js/device-panel.js"></script>
+  <script src="/static/js/targets.js"></script>
+  <script src="/static/js/ws.js"></script>
+  <script src="/static/js/main.js"></script>
+</body>
+</html>
