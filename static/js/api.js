@@ -91,5 +91,11 @@ const api = (() => {
     streamTraceroute: (host, family, maxHops, onEvent, signal) =>
       requestStream("POST", "/api/traceroute/run", { host, family, max_hops: maxHops }, onEvent, signal),
     resolveQuery: (query) => request("POST", "/api/resolve", { query }),
+    // Speed test: ping/jitter, then download and upload throughput, streamed
+    // as NDJSON — a server event, phase markers, periodic progress events,
+    // one result event per stage, and a final `done` event. `provider` picks
+    // which backend runs the test ("cloudflare" or "ndt7").
+    streamSpeedtest: (provider, onEvent, signal) =>
+      requestStream("POST", "/api/speedtest/run", { provider }, onEvent, signal),
   };
 })();

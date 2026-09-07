@@ -68,5 +68,41 @@ class Settings:
     traceroute_hard_max_hops: int = int(os.getenv("TP_TRACEROUTE_HARD_MAX_HOPS", "64"))
     traceroute_hop_timeout_s: float = float(os.getenv("TP_TRACEROUTE_HOP_TIMEOUT_S", "2.0"))
 
+    # Speed test: latency/jitter, download and upload throughput. Two
+    # providers are supported — Cloudflare's public speed-test endpoints (the
+    # same backend speed.cloudflare.com's own page hits from the browser) and
+    # M-Lab's NDT7 (a nonprofit internet-measurement consortium's public,
+    # documented test, discovered via their "locate" API) — so one CDN's
+    # peering doesn't singlehandedly decide what the tool reports. No account
+    # or API key needed for either.
+    speedtest_url: str = os.getenv("TP_SPEEDTEST_URL", "https://speed.cloudflare.com")
+    speedtest_download_bytes: int = int(os.getenv("TP_SPEEDTEST_DOWNLOAD_BYTES", str(64_000_000)))
+    speedtest_upload_bytes: int = int(os.getenv("TP_SPEEDTEST_UPLOAD_BYTES", str(32_000_000)))
+    # A single TCP stream rarely fills a fast, low-latency link on its own
+    # (slow-start and the bandwidth-delay product cap it well below the real
+    # capacity) — spreading the transfer across several concurrent
+    # connections, the way every mainstream speed-test does, is the
+    # difference between reporting a fraction of a link's real speed and
+    # reporting something close to it. Applies to both providers.
+    speedtest_download_connections: int = int(os.getenv("TP_SPEEDTEST_DOWNLOAD_CONNECTIONS", "8"))
+    speedtest_upload_connections: int = int(os.getenv("TP_SPEEDTEST_UPLOAD_CONNECTIONS", "6"))
+    speedtest_ping_samples: int = int(os.getenv("TP_SPEEDTEST_PING_SAMPLES", "10"))
+    speedtest_timeout_s: float = float(os.getenv("TP_SPEEDTEST_TIMEOUT_S", "30.0"))
+
+    # NDT7 (M-Lab): fixed-duration test per direction, per the protocol spec.
+    # The upload message size is capped well below NDT7's own 1 MiB ceiling —
+    # a single in-flight websocket send blocks until the transport accepts
+    # it, and on a slow link a full-size message can overrun the deadline by
+    # seconds because nothing can interrupt a send already in progress.
+    speedtest_ndt7_locate_url: str = os.getenv(
+        "TP_SPEEDTEST_NDT7_LOCATE_URL", "https://locate.measurementlab.net/v2/nearest/ndt/ndt7"
+    )
+    speedtest_ndt7_duration_s: float = float(os.getenv("TP_SPEEDTEST_NDT7_DURATION_S", "10.0"))
+    speedtest_ndt7_max_msg_bytes: int = int(os.getenv("TP_SPEEDTEST_NDT7_MAX_MSG_BYTES", str(256 * 1024)))
+    # A message send already in flight can't be interrupted, so the deadline
+    # above is a soft target — this is the hard cap on how much longer a
+    # stalled connection gets before it's cancelled outright.
+    speedtest_ndt7_overrun_grace_s: float = float(os.getenv("TP_SPEEDTEST_NDT7_OVERRUN_GRACE_S", "3.0"))
+
 
 settings = Settings()

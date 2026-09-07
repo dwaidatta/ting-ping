@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TingPing — speed test</title>
+  <link rel="icon" type="image/svg+xml" href="/static/ting-ping-icon.svg">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+  <header class="app-header" id="app-header"></header>
+
+  <div class="app-shell">
+    <aside class="sidebar" id="app-sidebar"></aside>
+
+    <div class="app-content">
+      <main>
+    <section class="panel speedtest-panel">
+      <div class="panel-header">
+        <div class="panel-title">
+          <h2><span class="sigil">##</span> speed_test</h2>
+          <p class="panel-desc">
+            Measures latency, jitter, and download/upload throughput to a nearby Cloudflare edge
+            &mdash; the same network its own speed test page uses. Nothing here is persisted, run
+            it again whenever you want a fresh reading.
+          </p>
+        </div>
+      </div>
+
+      <div class="panel-body">
+        <div class="scan-actions">
+          <select id="speedtest-provider" title="Which network the test runs against">
+            <option value="cloudflare">Cloudflare</option>
+            <option value="ndt7">M-Lab (NDT7)</option>
+          </select>
+          <button type="button" id="btn-run-speedtest" class="btn btn-primary">
+            <i class="bi bi-speedometer2"></i> run speed test
+          </button>
+          <button type="button" id="btn-stop-speedtest" class="btn btn-ghost" title="Stop the test and keep whatever has been measured so far" hidden>
+            <i class="bi bi-stop-fill"></i> stop
+          </button>
+          <span id="speedtest-progress" class="scan-progress" hidden></span>
+        </div>
+        <div id="speedtest-server" class="muted" hidden></div>
+
+        <div id="speedtest-error" class="form-error" hidden></div>
+
+        <div class="speed-phases" id="speed-phases">
+          <div class="speed-phase" data-phase="ping"><i class="bi bi-broadcast-pin"></i> ping</div>
+          <div class="speed-phase" data-phase="download"><i class="bi bi-cloud-arrow-down"></i> download</div>
+          <div class="speed-phase" data-phase="upload"><i class="bi bi-cloud-arrow-up"></i> upload</div>
+        </div>
+
+        <div id="speed-bar-wrap" class="speed-bar-wrap" hidden>
+          <div class="speed-bar-track"><div id="speed-bar-fill" class="speed-bar-fill"></div></div>
+          <div id="speed-bar-label" class="speed-bar-label"></div>
+        </div>
+
+        <div id="speedtest-empty" class="empty-state">
+          <pre class="ascii">┌─────────────────────────┐
+│    no test run yet      │
+└─────────────────────────┘</pre>
+          <p>Run a speed test to measure this machine's link to the internet.</p>
+        </div>
+
+        <div id="speedtest-results" class="stat-strip" hidden>
+          <div class="stat-tile" id="stat-ping">
+            <span class="stat-value" id="val-ping">&mdash;</span>
+            <span class="stat-label">ping</span>
+          </div>
+          <div class="stat-tile" id="stat-jitter">
+            <span class="stat-value" id="val-jitter">&mdash;</span>
+            <span class="stat-label">jitter</span>
+          </div>
+          <div class="stat-tile" id="stat-download">
+            <span class="stat-value" id="val-download">&mdash;</span>
+            <span class="stat-label">download</span>
+          </div>
+          <div class="stat-tile" id="stat-upload">
+            <span class="stat-value" id="val-upload">&mdash;</span>
+            <span class="stat-label">upload</span>
+          </div>
+        </div>
+      </div>
+    </section>
+      </main>
+    </div>
+  </div>
+
+  <div id="toast-stack" class="toast-stack" aria-live="polite"></div>
+
+  <script src="/static/js/navbar.js"></script>
+  <script src="/static/js/notify.js"></script>
+  <script src="/static/js/api.js"></script>
+  <script src="/static/js/ws.js"></script>
+  <script src="/static/js/speedtest.js"></script>
+  <script src="/static/js/speedtest-main.js"></script>
+</body>
+</html>

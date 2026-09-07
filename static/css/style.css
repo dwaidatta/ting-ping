@@ -897,6 +897,15 @@ main {
   align-items: center;
   gap: 12px;
 }
+.scan-actions select {
+  font-family: inherit;
+  font-size: 12.5px;
+  padding: 7px 9px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border-bright);
+  background: var(--bg);
+  color: var(--text-bright);
+}
 
 .scan-progress {
   display: inline-flex;
@@ -1020,6 +1029,68 @@ td.hop-timeout { color: var(--text-dim); }
 .hop-row.hop-timeout .hop-addr { color: var(--text-dim); font-style: italic; }
 .hop-row.hop-reached .hop-addr { color: var(--success); }
 .hop-row.hop-reached { border-left: 2px solid var(--success); }
+
+/* ── speed test ────────────────────────────────────────────────────────── */
+
+.speed-phases {
+  display: flex;
+  gap: 8px;
+  margin: 18px 0 4px;
+}
+
+.speed-phase {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 9px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-alt);
+  font-size: 11.5px;
+  letter-spacing: 0.03em;
+  color: var(--text-dim);
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+.speed-phase i { font-size: 13px; }
+.speed-phase.active { color: var(--accent); border-color: var(--accent); }
+.speed-phase.active i { animation: dot-breathe 1.1s ease-in-out infinite; }
+.speed-phase.done { color: var(--success); border-color: rgba(70, 209, 122, 0.4); }
+
+.speed-bar-wrap { margin: 14px 0 4px; }
+
+.speed-bar-track {
+  height: 8px;
+  border-radius: 4px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+.speed-bar-fill {
+  height: 100%;
+  width: 0%;
+  background: var(--accent);
+  box-shadow: 0 0 6px rgba(88, 211, 255, 0.5);
+  transition: width 0.15s ease;
+}
+
+.speed-bar-label {
+  margin-top: 5px;
+  font-size: 11px;
+  color: var(--text-muted);
+  text-align: right;
+}
+
+#speedtest-server { margin-top: 10px; }
+
+.speedtest-panel #speedtest-results {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+}
+/* "191.4 Mbps" runs longer than the plain numbers this tile was sized for. */
+.speedtest-panel .stat-value { font-size: 19px; }
 
 /* ── ip resolver ───────────────────────────────────────────────────────── */
 

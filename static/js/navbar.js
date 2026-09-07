@@ -10,6 +10,7 @@
     { href: "/discovery", icon: "bi-search", label: "discovery" },
     { href: "/traceroute", icon: "bi-signpost-split", label: "traceroute" },
     { href: "/resolver", icon: "bi-globe2", label: "resolver" },
+    { href: "/speedtest", icon: "bi-speedometer2", label: "speed test" },
   ];
 
   const path = location.pathname;

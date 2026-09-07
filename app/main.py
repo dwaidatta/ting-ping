@@ -8,7 +8,7 @@ from fastapi.staticfiles import StaticFiles
 from app import storage
 from app.checks import http as http_checks
 from app.config import settings
-from app.routers import bootstrap, device, discovery, resolver, targets, traceroute, ws
+from app.routers import bootstrap, device, discovery, resolver, speedtest, targets, traceroute, ws
 from app.scheduler import TargetScheduler
 from app.ws_manager import ConnectionManager
 
@@ -39,6 +39,7 @@ def create_app() -> FastAPI:
     app.include_router(discovery.router, prefix="/api")
     app.include_router(traceroute.router, prefix="/api")
     app.include_router(resolver.router, prefix="/api")
+    app.include_router(speedtest.router, prefix="/api")
     app.include_router(ws.router)
 
     app.mount("/static", StaticFiles(directory=str(settings.static_dir)), name="static")
@@ -66,6 +67,10 @@ def create_app() -> FastAPI:
     @app.get("/resolver")
     async def resolver_page():
         return FileResponse(settings.static_dir / "resolver.html")
+
+    @app.get("/speedtest")
+    async def speedtest_page():
+        return FileResponse(settings.static_dir / "speedtest.html")
 
     return app
 
