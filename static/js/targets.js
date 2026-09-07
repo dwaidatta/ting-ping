@@ -19,7 +19,6 @@ const targetsUI = (() => {
   const fIntervalValue = document.getElementById("f-interval-value");
   const fIntervalMin = document.getElementById("f-interval-min");
   const fIntervalMax = document.getElementById("f-interval-max");
-  const fEnabled = document.getElementById("f-enabled");
   const btnDelete = document.getElementById("btn-delete-target");
 
   const tcpFields = document.getElementById("f-tcp-fields");
@@ -153,6 +152,11 @@ const targetsUI = (() => {
           </div>
         </div>
         <div class="target-card-actions">
+          <button type="button" class="enable-switch ${target.enabled ? "on" : ""}" role="switch"
+                  aria-checked="${target.enabled}" aria-label="Enable this monitor"
+                  title="Toggle polling for this monitor on or off">
+            <span class="enable-switch-knob"></span>
+          </button>
           <button class="icon-btn btn-edit" aria-label="Edit"
                   title="Edit or delete this monitor"><i class="bi bi-pencil"></i></button>
         </div>
@@ -180,6 +184,7 @@ const targetsUI = (() => {
     `;
 
     el.querySelector(".btn-edit").addEventListener("click", () => openEditModal(targetId));
+    el.querySelector(".enable-switch").addEventListener("click", () => toggleEnabled(targetId));
     el.addEventListener("animationend", (e) => {
       if (e.animationName === "card-enter") el.classList.remove("enter");
     });
@@ -196,6 +201,7 @@ const targetsUI = (() => {
       uptimeFill: el.querySelector(".uptime-bar-fill"),
       uptimeValue: el.querySelector(".uptime-value"),
       badge: el.querySelector(".badge"),
+      enableSwitch: el.querySelector(".enable-switch"),
       target,
     });
     setStatus(targetId, status);
@@ -264,7 +270,7 @@ const targetsUI = (() => {
     try {
       await api.reorderTargets(order);
     } catch (err) {
-      console.error("Failed to save monitor order", err);
+      notify.toast(err.message || "The new order was not saved.", { title: "Failed to save monitor order" });
       orderBeforeDrag.forEach((id) => {
         const entry = cards.get(id);
         if (entry) grid.appendChild(entry.el);
@@ -291,6 +297,31 @@ const targetsUI = (() => {
     updateEmptyState();
   }
 
+  /** Build the full update payload for a target with just `enabled` flipped —
+   *  the API takes the whole record, not a partial patch. */
+  async function toggleEnabled(targetId) {
+    const entry = cards.get(targetId);
+    if (!entry) return;
+    const t = entry.target;
+    entry.enableSwitch.disabled = true;
+    try {
+      await api.updateTarget(targetId, {
+        name: t.name,
+        host: t.host,
+        method: t.method,
+        interval_s: t.interval_s,
+        enabled: !t.enabled,
+        tcp_port: t.tcp_port ?? null,
+        http_scheme: t.http_scheme ?? null,
+        http_path: t.http_path ?? null,
+      });
+    } catch (err) {
+      notify.toast(err.message || "The monitor's state was not changed.", { title: "Failed to toggle monitor" });
+    } finally {
+      entry.enableSwitch.disabled = false;
+    }
+  }
+
   function upsertFromEvent(target) {
     const existing = cards.get(target.id);
     if (existing) {
@@ -300,6 +331,8 @@ const targetsUI = (() => {
       }`;
       existing.badge.title = targetSummary(target);
       existing.badge.classList.toggle("disabled", !target.enabled);
+      existing.enableSwitch.classList.toggle("on", target.enabled);
+      existing.enableSwitch.setAttribute("aria-checked", target.enabled);
       existing.el.querySelector(".target-name").textContent = target.name;
       existing.el.querySelector(".target-host").textContent = target.host;
       if (!target.enabled) {
@@ -403,7 +436,6 @@ const targetsUI = (() => {
     fHttpPath.value = t.http_path ?? "";
     fInterval.value = t.interval_s;
     fIntervalValue.textContent = t.interval_s;
-    fEnabled.checked = t.enabled;
     toggleMethodFields();
 
     btnDelete.hidden = false;
@@ -435,7 +467,9 @@ const targetsUI = (() => {
     if (e.target === modal) closeModal();
   });
   document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape" && !modal.hidden) closeModal();
+    // The confirm dialog stacks its own backdrop on top and handles Escape
+    // itself — don't let this modal close underneath it at the same time.
+    if (e.key === "Escape" && !modal.hidden && !document.querySelector(".confirm-modal")) closeModal();
   });
 
   form.addEventListener("submit", async (e) => {
@@ -443,13 +477,16 @@ const targetsUI = (() => {
     formError.hidden = true;
 
     const host = fHost.value.trim();
+    // Enablement is toggled from the card itself now, not this form — carry the
+    // existing monitor's state through an edit, and start a new one enabled.
+    const existing = fId.value ? cards.get(fId.value) : null;
     const payload = {
       // An unnamed monitor is labelled by the host it points at.
       name: fName.value.trim() || host,
       host,
       method: fMethod.value,
       interval_s: Number(fInterval.value),
-      enabled: fEnabled.checked,
+      enabled: existing ? existing.target.enabled : true,
       tcp_port: fMethod.value === "tcp" ? Number(fTcpPort.value) || null : null,
       http_scheme: fMethod.value === "http" ? fHttpScheme.value : null,
       http_path: fMethod.value === "http" ? fHttpPath.value.trim() || "/" : null,
@@ -479,7 +516,13 @@ const targetsUI = (() => {
 
   btnDelete.addEventListener("click", async () => {
     if (!fId.value) return;
-    if (!confirm("Delete this monitor? Its latency history goes with it.")) return;
+    const ok = await notify.confirm({
+      title: "delete monitor",
+      message: "Delete this monitor? Its latency history goes with it.",
+      danger: true,
+      confirmLabel: "delete",
+    });
+    if (!ok) return;
     try {
       await api.deleteTarget(fId.value);
       closeModal();

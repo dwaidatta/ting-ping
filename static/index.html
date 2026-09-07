@@ -149,14 +149,6 @@
           <span class="range-scale"><span id="f-interval-min">1s</span><span id="f-interval-max">60s</span></span>
         </div>
 
-        <label class="field checkbox-field">
-          <input type="checkbox" id="f-enabled" checked />
-          <span class="checkbox-copy">
-            <span class="field-label">enabled</span>
-            <span class="field-hint">Uncheck to keep the monitor configured but stop its polling loop.</span>
-          </span>
-        </label>
-
         <div id="form-error" class="form-error" hidden></div>
 
         <div class="modal-actions">
@@ -173,7 +165,10 @@
     </div>
   </div>
 
+  <div id="toast-stack" class="toast-stack" aria-live="polite"></div>
+
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+  <script src="/static/js/notify.js"></script>
   <script src="/static/js/api.js"></script>
   <script src="/static/js/charts.js"></script>
   <script src="/static/js/device-panel.js"></script>

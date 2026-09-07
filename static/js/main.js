@@ -51,6 +51,8 @@ document.addEventListener("DOMContentLoaded", () => {
   wsClient.connect();
 
   // Both run unattended on page open; neither blocks the other.
-  loadState().catch((err) => console.error("Failed to load initial state", err));
+  loadState().catch((err) =>
+    notify.toast(err.message || "Could not load monitors from the server.", { title: "Failed to load state" })
+  );
   loadDeviceStatus();
 });
