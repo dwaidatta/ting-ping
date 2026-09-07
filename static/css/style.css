@@ -580,16 +580,14 @@ main {
 
 .target-card {
   background: var(--bg-alt);
-  border: 1px solid var(--border);
-  border-left: 2px solid var(--unknown);
+  border: 2px solid var(--unknown);
   border-radius: var(--radius);
   padding: 12px 14px;
   transition: border-color 0.15s ease;
 }
-.target-card:hover { border-color: var(--border-bright); }
-.target-card.is-up { border-left-color: var(--success); }
-.target-card.is-down { border-left-color: var(--danger); }
-.target-card.is-unknown { border-left-color: var(--unknown); }
+.target-card.is-up { border-color: var(--success); }
+.target-card.is-down { border-color: var(--danger); }
+.target-card.is-unknown { border-color: var(--unknown); }
 
 /* Drag to reorder. The card is only made draggable while the grip is held
    (see js/targets.js), so dragging never fights with the chart or the buttons. */
