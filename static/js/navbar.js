@@ -35,7 +35,7 @@
       <div class="brand">
         <span class="brand-prompt">root@tingping</span><span class="brand-sep">:</span><span class="brand-path">~</span><span class="brand-caret">#</span>
         <span class="brand-name">ting-ping</span>
-        <span class="brand-tag">network reachability monitor</span>
+        <span class="brand-tag">network tool</span>
       </div>
     </div>
 
