@@ -45,6 +45,10 @@ def create_app() -> FastAPI:
     async def index():
         return FileResponse(settings.static_dir / "index.html")
 
+    @app.get("/monitor")
+    async def monitor_page():
+        return FileResponse(settings.static_dir / "monitor.html")
+
     @app.get("/device")
     async def device_page():
         return FileResponse(settings.static_dir / "device.html")
