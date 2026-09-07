@@ -11,7 +11,11 @@
 <body>
   <header class="app-header" id="app-header"></header>
 
-  <main>
+  <div class="app-shell">
+    <aside class="sidebar" id="app-sidebar"></aside>
+
+    <div class="app-content">
+      <main>
     <section class="panel discovery-panel">
       <div class="panel-header">
         <div class="panel-title">
@@ -122,7 +126,9 @@
         </div>
       </div>
     </section>
-  </main>
+      </main>
+    </div>
+  </div>
 
   <div id="toast-stack" class="toast-stack" aria-live="polite"></div>
 

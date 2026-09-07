@@ -11,7 +11,11 @@
 <body>
   <header class="app-header" id="app-header"></header>
 
-  <main>
+  <div class="app-shell">
+    <aside class="sidebar" id="app-sidebar"></aside>
+
+    <div class="app-content">
+      <main>
     <section class="panel dash-panel">
       <div class="panel-header">
         <div class="panel-title">
@@ -78,8 +82,30 @@
         </div>
         <div class="dash-card-arrow"><i class="bi bi-arrow-right"></i></div>
       </a>
+
+      <a href="/traceroute" class="dash-card">
+        <div class="dash-card-icon"><i class="bi bi-signpost-split"></i></div>
+        <div class="dash-card-body">
+          <h3>traceroute</h3>
+          <p class="dash-card-desc">Trace the hop-by-hop path to a host, IPv4 or IPv6, with round-trip time at each hop.</p>
+          <div class="dash-card-meta muted">run on demand &middot; nothing persisted</div>
+        </div>
+        <div class="dash-card-arrow"><i class="bi bi-arrow-right"></i></div>
+      </a>
+
+      <a href="/resolver" class="dash-card">
+        <div class="dash-card-icon"><i class="bi bi-globe2"></i></div>
+        <div class="dash-card-body">
+          <h3>ip resolver</h3>
+          <p class="dash-card-desc">Resolve a hostname to its IPv4/IPv6 addresses, or an address back to its hostname.</p>
+          <div class="dash-card-meta muted">run on demand &middot; nothing persisted</div>
+        </div>
+        <div class="dash-card-arrow"><i class="bi bi-arrow-right"></i></div>
+      </a>
     </div>
-  </main>
+      </main>
+    </div>
+  </div>
 
   <div id="toast-stack" class="toast-stack" aria-live="polite"></div>
 

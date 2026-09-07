@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TingPing — traceroute</title>
+  <link rel="icon" type="image/svg+xml" href="/static/ting-ping-icon.svg">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+  <header class="app-header" id="app-header"></header>
+
+  <div class="app-shell">
+    <aside class="sidebar" id="app-sidebar"></aside>
+
+    <div class="app-content">
+      <main>
+    <section class="panel traceroute-panel">
+      <div class="panel-header">
+        <div class="panel-title">
+          <h2><span class="sigil">##</span> traceroute</h2>
+          <p class="panel-desc">
+            Traces the hop-by-hop path to a host, IPv4 or IPv6. Hops render as they answer &mdash;
+            nothing here is persisted, run it again whenever the route might have changed.
+          </p>
+        </div>
+      </div>
+
+      <div class="panel-body">
+        <form id="traceroute-form" class="scan-form">
+          <label class="field">
+            <span class="field-label">host <span class="req">required</span></span>
+            <span class="field-hint">Hostname, IPv4, or IPv6 address, e.g. <code>1.1.1.1</code> or <code>example.com</code>.</span>
+            <div class="input-row">
+              <input type="text" id="t-host" placeholder="example.com" autocomplete="off" spellcheck="false" required />
+              <select id="t-family" title="Which address family to trace">
+                <option value="auto">auto</option>
+                <option value="ipv4">IPv4</option>
+                <option value="ipv6">IPv6</option>
+              </select>
+            </div>
+          </label>
+
+          <label class="field">
+            <span class="field-label">max hops <span class="opt">optional</span></span>
+            <span class="field-hint">How many hops to try before giving up. Defaults to 30.</span>
+            <input type="number" id="t-max-hops" placeholder="30" min="1" max="64" />
+          </label>
+
+          <div id="traceroute-error" class="form-error" hidden></div>
+
+          <div class="scan-actions">
+            <button type="submit" id="btn-run-traceroute" class="btn btn-primary">
+              <i class="bi bi-signpost-split"></i> trace route
+            </button>
+            <button type="button" id="btn-stop-traceroute" class="btn btn-ghost" title="Stop the trace and keep whatever hops have answered so far" hidden>
+              <i class="bi bi-stop-fill"></i> stop
+            </button>
+            <span id="traceroute-progress" class="scan-progress" hidden></span>
+          </div>
+        </form>
+
+        <div id="traceroute-results">
+          <div id="traceroute-empty" class="empty-state">
+            <pre class="ascii">┌─────────────────────────┐
+│    no trace run yet     │
+└─────────────────────────┘</pre>
+            <p>Enter a host above and run a trace to see the path to it.</p>
+          </div>
+          <div id="traceroute-summary" class="scan-summary muted" hidden></div>
+          <table id="hop-table" class="hop-table" hidden>
+            <thead>
+              <tr>
+                <th>hop</th>
+                <th>address</th>
+                <th>hostname</th>
+                <th colspan="3">round-trip time</th>
+              </tr>
+            </thead>
+            <tbody id="hop-table-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+      </main>
+    </div>
+  </div>
+
+  <div id="toast-stack" class="toast-stack" aria-live="polite"></div>
+
+  <script src="/static/js/navbar.js"></script>
+  <script src="/static/js/notify.js"></script>
+  <script src="/static/js/api.js"></script>
+  <script src="/static/js/ws.js"></script>
+  <script src="/static/js/traceroute.js"></script>
+  <script src="/static/js/traceroute-main.js"></script>
+</body>
+</html>

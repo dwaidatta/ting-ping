@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TingPing — resolver</title>
+  <link rel="icon" type="image/svg+xml" href="/static/ting-ping-icon.svg">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+  <header class="app-header" id="app-header"></header>
+
+  <div class="app-shell">
+    <aside class="sidebar" id="app-sidebar"></aside>
+
+    <div class="app-content">
+      <main>
+    <section class="panel resolver-panel">
+      <div class="panel-header">
+        <div class="panel-title">
+          <h2><span class="sigil">##</span> ip_resolver</h2>
+          <p class="panel-desc">
+            Resolves a hostname to its IPv4 and IPv6 addresses, or an address back to its
+            hostname &mdash; whichever the query looks like. Nothing here is persisted.
+          </p>
+        </div>
+      </div>
+
+      <div class="panel-body">
+        <form id="resolver-form" class="scan-form">
+          <label class="field">
+            <span class="field-label">hostname or address <span class="req">required</span></span>
+            <span class="field-hint">e.g. <code>example.com</code>, <code>1.1.1.1</code>, or <code>2606:4700:4700::1111</code>.</span>
+            <input type="text" id="r-query" placeholder="example.com" autocomplete="off" spellcheck="false" required />
+          </label>
+
+          <div id="resolver-error" class="form-error" hidden></div>
+
+          <div class="scan-actions">
+            <button type="submit" id="btn-resolve" class="btn btn-primary">
+              <i class="bi bi-globe2"></i> resolve
+            </button>
+            <span id="resolver-progress" class="scan-progress" hidden></span>
+          </div>
+        </form>
+
+        <div id="resolver-results">
+          <div id="resolver-empty" class="empty-state">
+            <pre class="ascii">┌─────────────────────────┐
+│  no lookup run yet      │
+└─────────────────────────┘</pre>
+            <p>Enter a hostname or address above and resolve it.</p>
+          </div>
+          <div id="resolver-output" hidden></div>
+        </div>
+      </div>
+    </section>
+      </main>
+    </div>
+  </div>
+
+  <div id="toast-stack" class="toast-stack" aria-live="polite"></div>
+
+  <script src="/static/js/navbar.js"></script>
+  <script src="/static/js/notify.js"></script>
+  <script src="/static/js/api.js"></script>
+  <script src="/static/js/ws.js"></script>
+  <script src="/static/js/resolver.js"></script>
+  <script src="/static/js/resolver-main.js"></script>
+</body>
+</html>

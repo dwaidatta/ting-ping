@@ -11,7 +11,11 @@
 <body>
   <header class="app-header" id="app-header"></header>
 
-  <main>
+  <div class="app-shell">
+    <aside class="sidebar" id="app-sidebar"></aside>
+
+    <div class="app-content">
+      <main>
     <div class="page-toolbar">
       <button id="btn-refresh-device" class="btn btn-primary" title="Re-read this machine's network stack right now. The panel already loads by itself when the page opens.">
         <i class="bi bi-arrow-clockwise"></i> refresh device
@@ -42,7 +46,9 @@
         <p class="muted"><i class="bi bi-hourglass-split"></i> reading interfaces&hellip;</p>
       </div>
     </section>
-  </main>
+      </main>
+    </div>
+  </div>
 
   <div id="toast-stack" class="toast-stack" aria-live="polite"></div>
 

@@ -85,5 +85,11 @@ const api = (() => {
       requestStream("POST", "/api/discovery/scan", { subnet, force }, onEvent, signal),
     streamScanPorts: (host, ports, onEvent, force = false, signal) =>
       requestStream("POST", "/api/discovery/port-scan", { host, ports, force }, onEvent, signal),
+    // Traceroute: streamed as NDJSON, one `hop` event per line of output plus
+    // a final `done` event. IP resolver: a single request/response lookup —
+    // forward (hostname) or reverse (address), picked server-side by the query.
+    streamTraceroute: (host, family, maxHops, onEvent, signal) =>
+      requestStream("POST", "/api/traceroute/run", { host, family, max_hops: maxHops }, onEvent, signal),
+    resolveQuery: (query) => request("POST", "/api/resolve", { query }),
   };
 })();

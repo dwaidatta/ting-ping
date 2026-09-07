@@ -19,6 +19,7 @@ from app.checks.ping import run_ping_check
 from app.checks.status import CheckStatus
 from app.config import settings
 from app.models import CheckMethod, Target
+from app.netutil import resolve_hostname
 
 _MAC_RE = re.compile(r"([0-9a-fA-F]{2}[:-]){5}[0-9a-fA-F]{2}")
 _IP_RE = re.compile(r"\b\d{1,3}(?:\.\d{1,3}){3}\b")
@@ -57,21 +58,13 @@ def parse_ipv4_subnet(subnet: str, force: bool = False) -> "ipaddress.IPv4Networ
     return network
 
 
-async def _resolve_hostname(ip: str) -> str | None:
-    try:
-        host, _, _ = await asyncio.wait_for(asyncio.to_thread(socket.gethostbyaddr, ip), timeout=1.5)
-        return host
-    except Exception:
-        return None
-
-
 async def _probe_host(ip: str, sem: asyncio.Semaphore) -> dict | None:
     probe = Target(id="__discovery__", name=ip, host=ip, method=CheckMethod.PING, interval_s=1)
     async with sem:
         status, latency_ms, _ = await run_ping_check(probe)
     if status != CheckStatus.OK:
         return None
-    hostname = await _resolve_hostname(ip)
+    hostname = await resolve_hostname(ip)
     return {"ip": ip, "hostname": hostname, "latency_ms": latency_ms, "mac": None}
 
 

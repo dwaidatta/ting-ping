@@ -11,7 +11,11 @@
 <body>
   <header class="app-header" id="app-header"></header>
 
-  <main>
+  <div class="app-shell">
+    <aside class="sidebar" id="app-sidebar"></aside>
+
+    <div class="app-content">
+      <main>
     <div class="page-toolbar">
       <button id="btn-add-target" class="btn btn-primary" title="Register a new host to poll on a fixed interval.">
         <i class="bi bi-plus-lg"></i> add monitor
@@ -44,7 +48,9 @@
         <div id="targets-grid" class="targets-grid"></div>
       </div>
     </section>
-  </main>
+      </main>
+    </div>
+  </div>
 
   <div id="target-modal" class="modal-backdrop" hidden>
     <div class="modal">

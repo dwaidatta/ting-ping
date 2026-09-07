@@ -62,5 +62,11 @@ class Settings:
     discovery_port_concurrency: int = int(os.getenv("TP_DISCOVERY_PORT_CONCURRENCY", "300"))
     port_scan_timeout_s: float = float(os.getenv("TP_PORT_SCAN_TIMEOUT_S", "3.0"))
 
+    # Traceroute: shells out to the OS's own tracert/traceroute, streamed hop
+    # by hop. "hard" is a true ceiling on how many hops the UI can ask for.
+    traceroute_default_max_hops: int = int(os.getenv("TP_TRACEROUTE_MAX_HOPS", "30"))
+    traceroute_hard_max_hops: int = int(os.getenv("TP_TRACEROUTE_HARD_MAX_HOPS", "64"))
+    traceroute_hop_timeout_s: float = float(os.getenv("TP_TRACEROUTE_HOP_TIMEOUT_S", "2.0"))
+
 
 settings = Settings()

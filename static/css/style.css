@@ -4,6 +4,10 @@
 :root {
   color-scheme: dark;
 
+  /* Kept in sync with the topbar's real rendered height by navbar.js, so the
+     sidebar (which sits below it) always starts exactly where it ends. */
+  --header-h: 49px;
+
   --bg: #0b0f14;
   --bg-alt: #0d1219;
   --surface: #101720;
@@ -64,6 +68,72 @@ code {
 
 ::selection { background: var(--accent-dim); color: var(--text-bright); }
 
+/* ── app shell / sidebar ──────────────────────────────────────────────── */
+
+.app-shell {
+  display: flex;
+  align-items: stretch;
+}
+
+.sidebar {
+  --sidebar-w: 216px;
+  --sidebar-w-collapsed: 56px;
+  width: var(--sidebar-w);
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-alt);
+  border-right: 1px solid var(--border);
+  position: sticky;
+  top: var(--header-h);
+  height: calc(100vh - var(--header-h));
+  overflow-x: hidden;
+  overflow-y: auto;
+  transition: width 0.16s ease;
+  z-index: 30;
+}
+.sidebar.collapsed { width: var(--sidebar-w-collapsed); }
+
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 8px;
+  flex: 1 1 auto;
+}
+
+.sidebar-footer {
+  padding: 8px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sidebar-collapse-btn {
+  align-self: flex-end;
+  font-size: 14px;
+}
+.sidebar.collapsed .sidebar-collapse-btn { align-self: center; }
+
+.sidebar-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(3, 6, 10, 0.6);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.18s ease;
+  z-index: 25;
+}
+.sidebar-backdrop.visible { opacity: 1; pointer-events: auto; }
+
+.app-content {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
 /* ── header ───────────────────────────────────────────────────────────── */
 
 .app-header {
@@ -77,8 +147,17 @@ code {
   border-bottom: 1px solid var(--border);
   position: sticky;
   top: 0;
-  z-index: 10;
+  z-index: 40;
 }
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.sidebar-mobile-btn { display: none; }
 
 .brand {
   display: flex;
@@ -119,28 +198,21 @@ code {
   flex-wrap: wrap;
 }
 
-/* ── page nav ─────────────────────────────────────────────────────────── */
-
-.page-nav {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  flex: 1 1 auto;
-  justify-content: center;
-  flex-wrap: wrap;
-}
+/* ── page nav (sidebar links) ─────────────────────────────────────────── */
 
 .nav-tab {
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 10px;
   font-size: 11.5px;
   letter-spacing: 0.03em;
   text-decoration: none;
   color: var(--text-muted);
   border: 1px solid transparent;
   border-radius: var(--radius);
-  padding: 5px 11px;
+  padding: 8px 11px;
+  white-space: nowrap;
+  overflow: hidden;
   transition: color 0.12s ease, border-color 0.12s ease, background 0.12s ease;
 }
 .nav-tab:hover { color: var(--text-bright); border-color: var(--border); }
@@ -149,6 +221,11 @@ code {
   background: var(--accent-dim);
   border-color: var(--accent);
 }
+.nav-tab i { flex-shrink: 0; font-size: 14px; width: 16px; text-align: center; }
+.nav-label { overflow: hidden; text-overflow: ellipsis; }
+
+.sidebar.collapsed .nav-tab { justify-content: center; padding: 8px; }
+.sidebar.collapsed .nav-label { display: none; }
 
 .link-status {
   display: inline-flex;
@@ -907,6 +984,54 @@ main {
 .port-chip.closed { color: var(--text-dim); border-style: dashed; }
 .port-chip.filtered { color: var(--warning); border-color: rgba(227, 179, 65, 0.4); }
 
+/* ── traceroute ────────────────────────────────────────────────────────── */
+
+.hop-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.hop-table th {
+  text-align: left;
+  padding: 6px 10px;
+  color: var(--text-muted);
+  font-weight: 500;
+  border-bottom: 1px solid var(--border);
+}
+
+.hop-table td {
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+.hop-row { animation: card-enter 0.28s ease-out; }
+.hop-num { color: var(--text-dim); }
+.hop-addr { color: var(--text-bright); font-weight: 700; }
+.hop-host { color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; max-width: 260px; }
+.hop-rtt { color: var(--text); }
+.hop-timeout .hop-rtt,
+td.hop-timeout { color: var(--text-dim); }
+.hop-row.hop-timeout .hop-addr { color: var(--text-dim); font-style: italic; }
+.hop-row.hop-reached .hop-addr { color: var(--success); }
+.hop-row.hop-reached { border-left: 2px solid var(--success); }
+
+/* ── ip resolver ───────────────────────────────────────────────────────── */
+
+#resolver-output { margin-top: 18px; }
+
+.resolve-group { margin: 0 0 16px; }
+.resolve-group-title {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+.resolve-chip { cursor: pointer; }
+.resolve-chip:hover { border-color: var(--accent); color: var(--accent); }
+
 /* ── empty / muted states ─────────────────────────────────────────────── */
 
 .empty-state {
@@ -1243,6 +1368,28 @@ input[type="range"]::-moz-range-thumb {
     transition-duration: 0.01ms !important;
   }
   .status-dot .dot-core { opacity: 1; transform: none; }
+}
+
+@media (max-width: 900px) {
+  .sidebar-mobile-btn { display: inline-flex; }
+  .sidebar-collapse-btn { display: none; }
+
+  .sidebar {
+    position: fixed;
+    top: var(--header-h);
+    left: 0;
+    width: var(--sidebar-w) !important;
+    height: calc(100vh - var(--header-h));
+    transform: translateX(-100%);
+    box-shadow: none;
+    transition: transform 0.2s ease;
+  }
+  .sidebar.mobile-open {
+    transform: translateX(0);
+    box-shadow: 16px 0 40px rgba(0, 0, 0, 0.55);
+  }
+  .sidebar.collapsed .nav-label { display: inline; }
+  .sidebar.collapsed .nav-tab { justify-content: flex-start; padding: 8px 11px; }
 }
 
 @media (max-width: 640px) {
