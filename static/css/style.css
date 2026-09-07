@@ -93,6 +93,10 @@ code {
   z-index: 30;
 }
 .sidebar.collapsed { width: var(--sidebar-w-collapsed); }
+/* Applied only for the initial-state sync on page load, so the sidebar
+   starts in its stored collapsed/expanded state instantly instead of
+   visibly animating through it on every navigation. */
+.sidebar.no-transition { transition: none !important; }
 
 .sidebar-nav {
   display: flex;
@@ -312,8 +316,7 @@ code {
 /* ── layout / panels ──────────────────────────────────────────────────── */
 
 main {
-  max-width: 1320px;
-  margin: 0 auto;
+  width: 100%;
   padding: 20px;
   display: flex;
   flex-direction: column;
@@ -909,7 +912,8 @@ main {
 }
 
 #discovery-results,
-#portscan-results {
+#portscan-results,
+#traceroute-results {
   margin-top: 20px;
   padding-top: 20px;
   border-top: 1px solid var(--border);

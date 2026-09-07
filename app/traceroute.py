@@ -23,6 +23,13 @@ _WIN_HOP_RE = re.compile(
     r"^\s*(\d+)\s+(\*|<?\d+)\s*(?:ms)?\s+(\*|<?\d+)\s*(?:ms)?\s+(\*|<?\d+)\s*(?:ms)?\s+(.+?)\s*$"
 )
 
+# IPv6 traces routinely hit hops that never make it to a 3-column RTT line at
+# all — ICMPv6 errors print with fewer columns ("  1     *        *     Destination
+# host unreachable.", only two stars) or none ("  1  Transmit error: code 1231.").
+# The strict 3-column regex above doesn't match either, so without this fallback
+# those hops were silently dropped instead of rendered as failed.
+_WIN_HOP_FALLBACK_RE = re.compile(r"^\s*(\d+)\s+(.+?)\s*$")
+
 # POSIX traceroute (run with -n, so numeric-only): " 3  203.0.113.1  12.345 ms  12.301 ms  12.250 ms"
 # or, on a hop that didn't answer, " 2  * * *".
 _POSIX_HOP_RE = re.compile(r"^\s*(\d+)\s+(.+?)\s*$")
@@ -57,10 +64,24 @@ def resolve_target(host: str, family: str) -> tuple[str, int]:
         return host, addr.version
 
     af = {"ipv4": socket.AF_INET, "ipv6": socket.AF_INET6, "auto": socket.AF_UNSPEC}.get(family, socket.AF_UNSPEC)
+    # AI_ALL | AI_V4MAPPED works around Windows (and some other resolvers)
+    # silently omitting AAAA records for a host that has them whenever the
+    # local machine has no usable IPv6 route of its own — even for an
+    # explicit "ipv6" request. Whether *this* machine can route there is what
+    # the trace itself is for; DNS resolution shouldn't pre-emptively hide
+    # records that exist. For AF_INET/AF_UNSPEC queries the flags are no-ops.
     try:
-        infos = socket.getaddrinfo(host, None, af)
+        infos = socket.getaddrinfo(host, None, af, 0, 0, socket.AI_ALL | socket.AI_V4MAPPED)
     except socket.gaierror as exc:
         raise ValueError(f"could not resolve '{host}': {(exc.strerror or str(exc)).strip()}") from exc
+
+    if family == "ipv6":
+        # AI_V4MAPPED also hands back a synthetic "::ffff:a.b.c.d" entry for
+        # any A record — not a real IPv6 route, so it doesn't count here.
+        infos = [info for info in infos if ipaddress.ip_address(info[4][0]).ipv4_mapped is None]
+
+    if not infos:
+        raise ValueError(f"'{host}' has no {family.upper()} address to trace")
 
     ip = infos[0][4][0]
     version = 6 if infos[0][0] == socket.AF_INET6 else 4
@@ -78,13 +99,21 @@ def build_command(target_ip: str, version: int, max_hops: int, timeout_s: float)
 
 def _parse_windows_line(line: str) -> dict | None:
     match = _WIN_HOP_RE.match(line)
-    if not match:
-        return None
-    hop, r1, r2, r3, rest = match.groups()
-    rtts = [None if r == "*" else float(r.lstrip("<")) for r in (r1, r2, r3)]
-    if "request timed out" in rest.lower():
-        return {"hop": int(hop), "ip": None, "rtts_ms": rtts}
-    return {"hop": int(hop), "ip": rest.strip(), "rtts_ms": rtts}
+    if match:
+        hop, r1, r2, r3, rest = match.groups()
+        rtts = [None if r == "*" else float(r.lstrip("<")) for r in (r1, r2, r3)]
+        if "request timed out" in rest.lower():
+            return {"hop": int(hop), "ip": None, "rtts_ms": rtts}
+        return {"hop": int(hop), "ip": rest.strip(), "rtts_ms": rtts}
+
+    fallback = _WIN_HOP_FALLBACK_RE.match(line)
+    if fallback:
+        hop, rest = fallback.groups()
+        if not rest or rest.lower().startswith(("tracing route", "trace complete")):
+            return None
+        return {"hop": int(hop), "ip": None, "rtts_ms": [None, None, None]}
+
+    return None
 
 
 def _parse_posix_line(line: str) -> dict | None:

@@ -90,7 +90,13 @@
   } catch (e) {
     /* localStorage unavailable (private mode, etc.) — default to expanded */
   }
+  // Restoring the persisted state on a fresh page load is not a user
+  // action — suppress the width transition so it doesn't visibly
+  // collapse/expand on every navigation, then re-enable it for later clicks.
+  sidebar.classList.add("no-transition");
   setCollapsed(storedCollapsed);
+  void sidebar.offsetWidth;
+  sidebar.classList.remove("no-transition");
 
   collapseBtn.addEventListener("click", () => {
     setCollapsed(!sidebar.classList.contains("collapsed"));
