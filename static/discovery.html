@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TingPing — discovery</title>
+  <link rel="icon" type="image/svg+xml" href="/static/ting-ping-icon.svg">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+  <header class="app-header">
+    <div class="brand">
+      <span class="brand-prompt">root@tingping</span><span class="brand-sep">:</span><span class="brand-path">~</span><span class="brand-caret">#</span>
+      <span class="brand-name">ting-ping</span>
+      <span class="brand-tag">network reachability monitor</span>
+    </div>
+
+    <nav class="page-nav">
+      <a href="/" class="nav-tab"><i class="bi bi-activity"></i> monitors</a>
+      <a href="/device" class="nav-tab"><i class="bi bi-hdd-network"></i> device status</a>
+      <a href="/discovery" class="nav-tab active"><i class="bi bi-search"></i> discovery</a>
+    </nav>
+
+    <div class="header-actions">
+      <div id="link-status" class="link-status" title="Live websocket feed shared with the rest of the app. Discovery scans themselves run over plain requests, not this socket.">
+        <span class="link-dot"></span><span class="link-text">connecting</span>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="panel discovery-panel">
+      <div class="panel-header">
+        <div class="panel-title">
+          <h2><span class="sigil">##</span> network_discovery</h2>
+          <p class="panel-desc">
+            Sweeps an IPv4 subnet and lists every host that answers, with its hostname (when it
+            resolves) and round-trip time. Nothing is persisted &mdash; run it again whenever the
+            network changes.
+          </p>
+        </div>
+      </div>
+
+      <div class="panel-body">
+        <form id="discovery-form" class="scan-form">
+          <label class="field">
+            <span class="field-label">ipv4 subnet <span class="req">required</span></span>
+            <span class="field-hint">CIDR range to sweep, e.g. <code>192.168.1.0/24</code>. Larger ranges take longer.</span>
+            <div class="input-row">
+              <input type="text" id="d-subnet" placeholder="192.168.1.0/24" autocomplete="off" spellcheck="false" required />
+              <button type="button" id="btn-detect-subnet" class="btn btn-ghost"
+                      title="Fill in this machine's own subnet, read from its active adapter">
+                <i class="bi bi-crosshair"></i> use my subnet
+              </button>
+            </div>
+          </label>
+
+          <div id="discovery-error" class="form-error" hidden></div>
+
+          <div class="scan-actions">
+            <button type="submit" id="btn-scan-network" class="btn btn-primary">
+              <i class="bi bi-broadcast"></i> scan network
+            </button>
+            <button type="button" id="btn-stop-scan" class="btn btn-ghost" title="Stop the sweep and keep whatever hosts have answered so far" hidden>
+              <i class="bi bi-stop-fill"></i> stop
+            </button>
+            <span id="discovery-progress" class="scan-progress" hidden></span>
+          </div>
+        </form>
+
+        <div id="discovery-results">
+          <div id="discovery-empty" class="empty-state">
+            <pre class="ascii">┌─────────────────────────┐
+│    no scan run yet      │
+└─────────────────────────┘</pre>
+            <p>Enter a subnet above and run a scan to list hosts that respond.</p>
+          </div>
+          <div id="hosts-summary" class="scan-summary muted" hidden></div>
+          <div id="hosts-grid" class="hosts-grid" hidden></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="portscan-panel" class="panel portscan-panel">
+      <div class="panel-header">
+        <div class="panel-title">
+          <h2><span class="sigil">##</span> port_scan</h2>
+          <p class="panel-desc">
+            Probes one host across a set of TCP ports and reports which answer. Point it at any
+            IPv4 or IPv6 address &mdash; on your own network or beyond it.
+          </p>
+        </div>
+      </div>
+
+      <div class="panel-body">
+        <form id="portscan-form" class="scan-form">
+          <label class="field">
+            <span class="field-label">host <span class="req">required</span></span>
+            <span class="field-hint">IPv4 or IPv6 address to probe. e.g. <code>192.168.1.1</code> or <code>2606:4700:4700::1111</code></span>
+            <input type="text" id="p-host" placeholder="192.168.1.1" autocomplete="off" spellcheck="false" required />
+          </label>
+
+          <label class="field">
+            <span class="field-label">ports</span>
+            <span class="field-hint">A range (<code>1-1024</code>), a comma list (<code>22,80,443</code>), or both. Leave blank for the common-ports preset.</span>
+            <div class="input-row">
+              <input type="text" id="p-ports" placeholder="1-1024" autocomplete="off" spellcheck="false" />
+              <select id="p-preset" title="Fill the ports field with a preset">
+                <option value="">preset&hellip;</option>
+                <option value="common">common ports</option>
+                <option value="1-1024">1 – 1024</option>
+                <option value="1-65535">all ports (1 – 65535)</option>
+              </select>
+            </div>
+          </label>
+
+          <div id="portscan-error" class="form-error" hidden></div>
+
+          <div class="scan-actions">
+            <button type="submit" id="btn-scan-ports" class="btn btn-primary">
+              <i class="bi bi-hdd-network"></i> scan ports
+            </button>
+            <button type="button" id="btn-stop-portscan" class="btn btn-ghost" title="Stop the scan and keep whatever ports have answered so far" hidden>
+              <i class="bi bi-stop-fill"></i> stop
+            </button>
+            <span id="portscan-progress" class="scan-progress" hidden></span>
+          </div>
+        </form>
+
+        <div id="portscan-results">
+          <div id="portscan-empty" class="empty-state">
+            <pre class="ascii">┌─────────────────────────┐
+│    no scan run yet      │
+└─────────────────────────┘</pre>
+            <p>Enter a host above and run a scan to see which ports answer.</p>
+          </div>
+          <div id="ports-summary" class="scan-summary muted" hidden></div>
+          <div id="ports-grid" class="ports-grid" hidden></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div id="toast-stack" class="toast-stack" aria-live="polite"></div>
+
+  <script src="/static/js/notify.js"></script>
+  <script src="/static/js/api.js"></script>
+  <script src="/static/js/ws.js"></script>
+  <script src="/static/js/discovery.js"></script>
+  <script src="/static/js/discovery-main.js"></script>
+</body>
+</html>

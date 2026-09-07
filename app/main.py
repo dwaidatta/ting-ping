@@ -8,7 +8,7 @@ from fastapi.staticfiles import StaticFiles
 from app import storage
 from app.checks import http as http_checks
 from app.config import settings
-from app.routers import bootstrap, device, targets, ws
+from app.routers import bootstrap, device, discovery, targets, ws
 from app.scheduler import TargetScheduler
 from app.ws_manager import ConnectionManager
 
@@ -36,6 +36,7 @@ def create_app() -> FastAPI:
     app.include_router(bootstrap.router, prefix="/api")
     app.include_router(targets.router, prefix="/api")
     app.include_router(device.router, prefix="/api")
+    app.include_router(discovery.router, prefix="/api")
     app.include_router(ws.router)
 
     app.mount("/static", StaticFiles(directory=str(settings.static_dir)), name="static")
@@ -43,6 +44,14 @@ def create_app() -> FastAPI:
     @app.get("/")
     async def index():
         return FileResponse(settings.static_dir / "index.html")
+
+    @app.get("/device")
+    async def device_page():
+        return FileResponse(settings.static_dir / "device.html")
+
+    @app.get("/discovery")
+    async def discovery_page():
+        return FileResponse(settings.static_dir / "discovery.html")
 
     return app
 

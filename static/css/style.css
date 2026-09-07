@@ -119,6 +119,37 @@ code {
   flex-wrap: wrap;
 }
 
+/* ── page nav ─────────────────────────────────────────────────────────── */
+
+.page-nav {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: 1 1 auto;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.nav-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  letter-spacing: 0.03em;
+  text-decoration: none;
+  color: var(--text-muted);
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  padding: 5px 11px;
+  transition: color 0.12s ease, border-color 0.12s ease, background 0.12s ease;
+}
+.nav-tab:hover { color: var(--text-bright); border-color: var(--border); }
+.nav-tab.active {
+  color: var(--text-bright);
+  background: var(--accent-dim);
+  border-color: var(--accent);
+}
+
 .link-status {
   display: inline-flex;
   align-items: center;
@@ -210,6 +241,14 @@ main {
   display: flex;
   flex-direction: column;
   gap: 20px;
+}
+
+/* Page-specific actions that don't belong in the shared navbar — each page
+   supplies its own, or none at all. */
+.page-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
 }
 
 .panel {
@@ -650,6 +689,118 @@ main {
 }
 .spinner::before { content: "◜"; }
 
+/* ── discovery / port scan ────────────────────────────────────────────── */
+
+.scan-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 640px;
+}
+
+.input-row {
+  display: flex;
+  gap: 8px;
+}
+.field .input-row input[type="text"] { flex: 1; min-width: 0; width: auto; }
+.field .input-row select { flex-shrink: 0; width: auto; min-width: 150px; }
+.input-row .btn { flex-shrink: 0; }
+
+.scan-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.scan-progress {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11.5px;
+  color: var(--text-muted);
+}
+
+.scan-summary {
+  margin: 0 0 12px;
+  font-size: 11.5px;
+}
+
+#discovery-results,
+#portscan-results {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+}
+
+.hosts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 12px;
+}
+
+.host-card {
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  border-left: 2px solid var(--success);
+  border-radius: var(--radius);
+  padding: 10px 12px;
+  animation: card-enter 0.28s ease-out;
+}
+
+.host-card-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.host-ident { flex: 1; min-width: 0; }
+
+.host-ip {
+  color: var(--text-bright);
+  font-weight: 700;
+  font-size: 12.5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.host-hostname {
+  font-size: 11px;
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.host-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 9px;
+}
+
+.ports-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.port-chip {
+  display: inline-block;
+  padding: 4px 9px;
+  border-radius: 2px;
+  font-size: 11px;
+  letter-spacing: 0.02em;
+  background: var(--surface-2);
+  border: 1px solid var(--border-bright);
+  color: var(--text-muted);
+  cursor: help;
+}
+.port-chip.open { color: var(--success); border-color: rgba(70, 209, 122, 0.4); }
+.port-chip.closed { color: var(--text-dim); border-style: dashed; }
+.port-chip.filtered { color: var(--warning); border-color: rgba(227, 179, 65, 0.4); }
+
 /* ── empty / muted states ─────────────────────────────────────────────── */
 
 .empty-state {
@@ -751,9 +902,11 @@ main {
 .req { color: var(--warning); border-color: #4a3c17; }
 .opt { color: var(--text-dim); }
 
-.modal-body input[type="text"],
-.modal-body input[type="number"],
-.modal-body select {
+/* Shared by every `.field` — inside the add/edit modal and in plain-page
+   forms like discovery's, so both pick up the same look from one place. */
+.field input[type="text"],
+.field input[type="number"],
+.field select {
   font-family: inherit;
   font-size: 12.5px;
   padding: 7px 9px;
@@ -761,16 +914,17 @@ main {
   border: 1px solid var(--border-bright);
   background: var(--bg);
   color: var(--text-bright);
+  width: 100%;
 }
-.modal-body input::placeholder { color: var(--text-dim); }
-.modal-body input:focus,
-.modal-body select:focus {
+.field input::placeholder { color: var(--text-dim); }
+.field input:focus,
+.field select:focus {
   outline: none;
   border-color: var(--accent);
   box-shadow: 0 0 0 1px var(--accent-dim);
 }
 
-.modal-body select option { background: var(--surface); color: var(--text); }
+.field select option { background: var(--surface); color: var(--text); }
 
 input[type="range"] {
   -webkit-appearance: none;
@@ -813,6 +967,12 @@ input[type="range"]::-moz-range-thumb {
   gap: 16px;
   border-left: 1px solid var(--border-bright);
   padding-left: 12px;
+}
+
+/* A port number is at most 5 digits — stretching it across the whole modal
+   like the host/path fields do just leaves a wide empty box. */
+#f-tcp-port {
+  width: 120px;
 }
 
 .form-error {

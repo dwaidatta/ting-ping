@@ -48,5 +48,19 @@ class Settings:
     public_ip_url: str = os.getenv("TP_PUBLIC_IP_URL", "https://ipinfo.io/json")
     public_ip_timeout_s: float = float(os.getenv("TP_PUBLIC_IP_TIMEOUT_S", "4.0"))
 
+    # Network discovery: subnet sweep + port scan, both triggered by hand from
+    # the discovery page. The "warn" thresholds are soft — crossing them just
+    # makes the page ask the user to confirm before a click can pin the server
+    # for minutes — while the "hard" caps are true ceilings nothing can bypass,
+    # since concurrency below, not the cap itself, is what bounds how many
+    # sockets are open at once.
+    discovery_warn_hosts: int = int(os.getenv("TP_DISCOVERY_WARN_HOSTS", "1024"))
+    discovery_hard_max_hosts: int = int(os.getenv("TP_DISCOVERY_HARD_MAX_HOSTS", "65536"))
+    discovery_sweep_concurrency: int = int(os.getenv("TP_DISCOVERY_SWEEP_CONCURRENCY", "64"))
+    discovery_warn_ports: int = int(os.getenv("TP_DISCOVERY_WARN_PORTS", "1024"))
+    discovery_max_ports: int = int(os.getenv("TP_DISCOVERY_MAX_PORTS", "65535"))
+    discovery_port_concurrency: int = int(os.getenv("TP_DISCOVERY_PORT_CONCURRENCY", "300"))
+    port_scan_timeout_s: float = float(os.getenv("TP_PORT_SCAN_TIMEOUT_S", "3.0"))
+
 
 settings = Settings()

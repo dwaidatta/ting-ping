@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TingPing — device status</title>
+  <link rel="icon" type="image/svg+xml" href="/static/ting-ping-icon.svg">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+  <header class="app-header">
+    <div class="brand">
+      <span class="brand-prompt">root@tingping</span><span class="brand-sep">:</span><span class="brand-path">~</span><span class="brand-caret">#</span>
+      <span class="brand-name">ting-ping</span>
+      <span class="brand-tag">network reachability monitor</span>
+    </div>
+
+    <nav class="page-nav">
+      <a href="/" class="nav-tab"><i class="bi bi-activity"></i> monitors</a>
+      <a href="/device" class="nav-tab active"><i class="bi bi-hdd-network"></i> device status</a>
+      <a href="/discovery" class="nav-tab"><i class="bi bi-search"></i> discovery</a>
+    </nav>
+
+    <div class="header-actions">
+      <div id="link-status" class="link-status" title="Live websocket feed pushing check results to this page. If it drops, the page reconnects on its own.">
+        <span class="link-dot"></span><span class="link-text">connecting</span>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="page-toolbar">
+      <button id="btn-refresh-device" class="btn btn-primary" title="Re-read this machine's network stack right now. The panel already loads by itself when the page opens.">
+        <i class="bi bi-arrow-clockwise"></i> refresh device
+      </button>
+    </div>
+
+    <section id="device-panel" class="panel device-panel">
+      <div class="panel-header">
+        <div class="panel-title">
+          <h2><span class="sigil">##</span> device_status</h2>
+          <p class="panel-desc">
+            Read from this machine&rsquo;s own network stack &mdash; <code>ipconfig</code>, the adapter
+            counters and live probes. Loads automatically when the page opens; <code>refresh device</code>
+            re-reads it on demand. The public-identity block is the one part that leaves your network:
+            it asks an external service how your address looks from outside. Set
+            <code>TP_PUBLIC_IP_LOOKUP=0</code> to switch that off.
+          </p>
+        </div>
+        <div class="panel-header-right">
+          <span id="device-stamp" class="stamp" title="Local time this snapshot was taken."></span>
+          <button id="btn-toggle-device" class="icon-btn" aria-label="Collapse device status"
+                  title="Collapse or expand this panel">
+            <i class="bi bi-chevron-up"></i>
+          </button>
+        </div>
+      </div>
+      <div id="device-panel-body" class="panel-body">
+        <p class="muted"><i class="bi bi-hourglass-split"></i> reading interfaces&hellip;</p>
+      </div>
+    </section>
+  </main>
+
+  <div id="toast-stack" class="toast-stack" aria-live="polite"></div>
+
+  <script src="/static/js/notify.js"></script>
+  <script src="/static/js/api.js"></script>
+  <script src="/static/js/device-panel.js"></script>
+  <script src="/static/js/ws.js"></script>
+  <script src="/static/js/device-main.js"></script>
+</body>
+</html>
